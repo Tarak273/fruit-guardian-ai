@@ -30,7 +30,11 @@ serve(async (req) => {
 Your response MUST be valid JSON with this exact structure:
 {
   "fruitType": "string - the type of fruit detected (e.g., Apple, Orange, Banana, etc.)",
-  "isHealthy": boolean,
+  "isHealthy": boolean - true if completely healthy, false if any disease/damage detected,
+  "healthStatus": "string - one of: 'Excellent', 'Good', 'Fair', 'Poor', 'Critical'",
+  "isEdible": boolean - true if safe to eat, false if not recommended for consumption,
+  "edibilityReason": "string - brief explanation of why it is or isn't safe to eat",
+  "affectedPercentage": number between 0 and 100 - estimate of how much of the fruit is affected by disease/damage,
   "disease": {
     "name": "string - name of the disease if detected, or 'None' if healthy",
     "severity": "string - one of: 'Healthy', 'Mild', 'Moderate', 'Severe'",
@@ -50,6 +54,7 @@ Be specific about:
 - Visual symptoms you can identify
 - Confidence level in your diagnosis
 - Practical, actionable treatment advice suitable for farmers
+- ALWAYS provide a clear edibility assessment for consumers
 
 If the image doesn't contain a recognizable fruit, return:
 {

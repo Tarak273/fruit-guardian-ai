@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button";
 interface AnalysisResult {
   fruitType: string;
   isHealthy: boolean;
+  healthStatus?: "Excellent" | "Good" | "Fair" | "Poor" | "Critical";
+  isEdible?: boolean;
+  edibilityReason?: string;
+  affectedPercentage?: number;
   disease: {
     name: string;
     severity: "Healthy" | "Mild" | "Moderate" | "Severe";
