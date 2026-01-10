@@ -1,0 +1,4 @@
+project_id = "itxdlzoxroixgncszdzo"
+
+[functions.analyze-fruit]
+verify_jwt = false
