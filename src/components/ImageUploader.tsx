@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Loader2, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ImageUploaderProps {
@@ -14,15 +14,9 @@ const ImageUploader = ({ onImageUpload, isAnalyzing, uploadedImage, onClear }: I
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFile = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) {
-      return;
-    }
-
+    if (!file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      onImageUpload(base64);
-    };
+    reader.onloadend = () => onImageUpload(reader.result as string);
     reader.readAsDataURL(file);
   }, [onImageUpload]);
 
@@ -50,49 +44,81 @@ const ImageUploader = ({ onImageUpload, isAnalyzing, uploadedImage, onClear }: I
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className="w-full max-w-xl mx-auto"
     >
       <AnimatePresence mode="wait">
         {uploadedImage ? (
           <motion.div
             key="preview"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="relative rounded-2xl overflow-hidden bg-card shadow-lg border border-border"
+            initial={{ opacity: 0, scale: 0.9, rotateX: 10 }}
+            animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="relative rounded-2xl overflow-hidden bg-card shadow-lg border border-border group"
           >
             <img
               src={uploadedImage}
               alt="Uploaded fruit"
-              className="w-full h-80 object-cover"
+              className="w-full h-80 object-cover transition-transform duration-700 group-hover:scale-105"
             />
             
-            {/* Scanning overlay */}
             {isAnalyzing && (
-              <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm flex items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 bg-foreground/30 backdrop-blur-sm flex items-center justify-center"
+              >
+                {/* Animated scan lines */}
                 <div className="absolute inset-0 overflow-hidden">
-                  <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent scan-line" />
+                  <motion.div
+                    className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent"
+                    animate={{ top: ["0%", "100%", "0%"] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  />
+                  <motion.div
+                    className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent"
+                    animate={{ top: ["100%", "0%", "100%"] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                  />
                 </div>
-                <div className="bg-card/90 backdrop-blur-md px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
-                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                  <span className="font-medium text-foreground">Analyzing fruit...</span>
-                </div>
-              </div>
+
+                {/* Corner brackets */}
+                <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-primary rounded-tl-lg" />
+                <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-primary rounded-tr-lg" />
+                <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-primary rounded-bl-lg" />
+                <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-primary rounded-br-lg" />
+
+                <motion.div
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  className="bg-card/95 backdrop-blur-md px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 border border-primary/30"
+                >
+                  <ScanLine className="w-5 h-5 text-primary animate-pulse" />
+                  <div>
+                    <span className="font-medium text-foreground block">Analyzing fruit...</span>
+                    <span className="text-xs text-muted-foreground">Detecting diseases & health status</span>
+                  </div>
+                </motion.div>
+              </motion.div>
             )}
 
-            {/* Clear button */}
             {!isAnalyzing && (
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute top-3 right-3 rounded-full bg-card/90 backdrop-blur-sm shadow-md hover:bg-card"
-                onClick={onClear}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
-                <X className="w-4 h-4" />
-              </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-3 right-3 rounded-full bg-card/90 backdrop-blur-sm shadow-md hover:bg-card hover:scale-110 transition-transform"
+                  onClick={onClear}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </motion.div>
             )}
           </motion.div>
         ) : (
@@ -100,7 +126,8 @@ const ImageUploader = ({ onImageUpload, isAnalyzing, uploadedImage, onClear }: I
             key="upload"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            whileHover={{ scale: 1.01 }}
             className={`upload-zone cursor-pointer ${isDragging ? "dragging" : ""}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -116,9 +143,13 @@ const ImageUploader = ({ onImageUpload, isAnalyzing, uploadedImage, onClear }: I
             />
 
             <div className="flex flex-col items-center gap-4 py-8">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center pulse-glow">
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center pulse-glow"
+              >
                 <Upload className="w-8 h-8 text-primary" />
-              </div>
+              </motion.div>
 
               <div className="text-center">
                 <p className="text-lg font-semibold text-foreground mb-1">
@@ -129,7 +160,7 @@ const ImageUploader = ({ onImageUpload, isAnalyzing, uploadedImage, onClear }: I
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full">
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>Supports JPG, PNG, WebP • Max 10MB</span>
               </div>

@@ -6,7 +6,6 @@
 
 @layer base {
   :root {
-    /* Fresh agricultural palette */
     --background: 45 33% 97%;
     --foreground: 150 25% 15%;
 
@@ -16,29 +15,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 150 25% 15%;
 
-    /* Deep forest green - trust & nature */
     --primary: 152 45% 28%;
     --primary-foreground: 45 33% 97%;
 
-    /* Soft sage green */
     --secondary: 140 20% 92%;
     --secondary-foreground: 152 45% 20%;
 
     --muted: 45 20% 94%;
     --muted-foreground: 150 10% 45%;
 
-    /* Warm coral/orange accent - fruit, energy */
     --accent: 24 85% 58%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Healthy green */
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
 
-    /* Warning amber */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
@@ -48,12 +42,10 @@
 
     --radius: 0.75rem;
 
-    /* Custom gradients */
     --gradient-hero: linear-gradient(135deg, hsl(152 45% 28%) 0%, hsl(165 40% 35%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(24 85% 58%) 0%, hsl(35 90% 55%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(45 33% 98%) 100%);
     
-    /* Shadows */
     --shadow-sm: 0 2px 8px -2px hsl(150 25% 15% / 0.08);
     --shadow-md: 0 8px 24px -4px hsl(150 25% 15% / 0.12);
     --shadow-lg: 0 16px 48px -8px hsl(150 25% 15% / 0.16);
@@ -196,5 +188,73 @@
       transform: translateY(100%);
       opacity: 1;
     }
+  }
+
+  /* Floating particles */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  /* Shimmer effect */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.08) 50%,
+      transparent 100%
+    );
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Gradient border animation */
+  .gradient-border {
+    position: relative;
+    z-index: 0;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--primary)),
+      hsl(var(--accent)),
+      hsl(var(--success)),
+      hsl(var(--primary))
+    );
+    z-index: -1;
+    animation: rotateBorder 4s linear infinite;
+  }
+  .gradient-border::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: hsl(var(--card));
+    z-index: -1;
+  }
+  @keyframes rotateBorder {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+
+  /* Disease name glow */
+  .disease-glow {
+    text-shadow: 0 0 20px hsl(var(--accent) / 0.3), 0 0 40px hsl(var(--accent) / 0.1);
   }
 }
