@@ -10,15 +10,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate that the request includes a valid API key (anon key)
-  // This prevents completely unauthenticated requests from external actors
+  // Validate that the request includes a valid API key (anon/publishable key)
   const authHeader = req.headers.get("Authorization");
   const apiKey = req.headers.get("apikey");
   const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
   const providedKey = authHeader?.replace("Bearer ", "") || apiKey;
 
-  if (!providedKey || providedKey !== SUPABASE_ANON_KEY) {
+  // Check key matches the anon key (publishable key from frontend)
+  if (!providedKey || (SUPABASE_ANON_KEY && providedKey !== SUPABASE_ANON_KEY)) {
     return new Response(
       JSON.stringify({ error: "Unauthorized: Invalid or missing API key" }),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
