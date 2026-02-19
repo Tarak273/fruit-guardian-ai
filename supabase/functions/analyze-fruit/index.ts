@@ -10,12 +10,46 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Validate that the request includes a valid API key (anon key)
+  // This prevents completely unauthenticated requests from external actors
+  const authHeader = req.headers.get("Authorization");
+  const apiKey = req.headers.get("apikey");
+  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+
+  const providedKey = authHeader?.replace("Bearer ", "") || apiKey;
+
+  if (!providedKey || providedKey !== SUPABASE_ANON_KEY) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized: Invalid or missing API key" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     const { imageBase64 } = await req.json();
     
     if (!imageBase64) {
       return new Response(
         JSON.stringify({ error: "No image provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate image size to prevent abuse (max 10MB of base64 data)
+    const MAX_BASE64_LENGTH = 10 * 1024 * 1024 * 1.37; // ~10MB decoded
+    if (imageBase64.length > MAX_BASE64_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: "Image too large. Maximum size is 10MB." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate that the imageBase64 looks like a valid data URL or base64 string
+    const isValidDataUrl = /^data:image\/(jpeg|jpg|png|gif|webp|bmp);base64,/.test(imageBase64);
+    const isValidBase64 = /^[A-Za-z0-9+/]+=*$/.test(imageBase64);
+    if (!isValidDataUrl && !isValidBase64) {
+      return new Response(
+        JSON.stringify({ error: "Invalid image format. Please provide a valid image." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -103,9 +137,8 @@ If the image doesn't contain a recognizable fruit, return:
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
+      console.error("AI gateway error:", response.status);
+      throw new Error("AI service error. Please try again.");
     }
 
     const aiResponse = await response.json();
@@ -118,7 +151,6 @@ If the image doesn't contain a recognizable fruit, return:
     // Parse the JSON from the AI response
     let analysisResult;
     try {
-      // Try to extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysisResult = JSON.parse(jsonMatch[0]);
@@ -126,7 +158,6 @@ If the image doesn't contain a recognizable fruit, return:
         throw new Error("No valid JSON in response");
       }
     } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
       throw new Error("Failed to parse analysis results");
     }
 
@@ -135,7 +166,6 @@ If the image doesn't contain a recognizable fruit, return:
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error analyzing fruit:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Failed to analyze image" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
