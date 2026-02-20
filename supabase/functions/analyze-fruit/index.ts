@@ -46,7 +46,16 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert agricultural pathologist and botanist specializing in fruit disease detection. Analyze the provided fruit image and provide a detailed assessment.
+    const systemPrompt = `You are an expert agricultural pathologist and botanist specializing in FRUIT disease detection ONLY. You MUST only analyze FRUITS — not vegetables, grains, herbs, spices, or any other type of plant or food item.
+
+CRITICAL RULE: First, determine if the image contains a FRUIT. Fruits are the mature ovary of a flowering plant, typically containing seeds. Common fruits include: apple, banana, orange, mango, grape, strawberry, blueberry, watermelon, papaya, pineapple, peach, plum, cherry, pear, kiwi, lemon, lime, grapefruit, pomegranate, fig, guava, lychee, dragon fruit, passion fruit, coconut, avocado, tomato, etc.
+
+If the image contains a VEGETABLE (e.g., potato, carrot, onion, broccoli, cauliflower, cabbage, spinach, lettuce, cucumber, bell pepper, eggplant, pumpkin, squash, zucchini, beans, peas, corn, garlic, ginger, radish, beetroot, etc.) or any NON-FRUIT item, you MUST return:
+{
+  "error": "This appears to be a vegetable or non-fruit item. This tool only analyzes fruits. Please upload an image of a fruit (e.g., apple, banana, orange, mango, grape, etc.)."
+}
+
+If the image does contain a recognizable FRUIT, analyze it and provide a detailed assessment.
 
 Your response MUST be valid JSON with this exact structure:
 {
@@ -77,7 +86,7 @@ Be specific about:
 - Practical, actionable treatment advice suitable for farmers
 - ALWAYS provide a clear edibility assessment for consumers
 
-If the image doesn't contain a recognizable fruit, return:
+If the image doesn't contain any recognizable food item or fruit, return:
 {
   "error": "Unable to identify fruit in the image. Please upload a clear image of a fruit."
 }`;
