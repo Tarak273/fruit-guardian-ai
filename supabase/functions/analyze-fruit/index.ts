@@ -10,20 +10,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate that the request includes a valid API key (anon/publishable key)
-  const authHeader = req.headers.get("Authorization");
-  const apiKey = req.headers.get("apikey");
-  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
-
-  const providedKey = authHeader?.replace("Bearer ", "") || apiKey;
-
-  // Check key matches the anon key (publishable key from frontend)
-  if (!providedKey || (SUPABASE_ANON_KEY && providedKey !== SUPABASE_ANON_KEY)) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized: Invalid or missing API key" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
+  // Auth is handled by verify_jwt in config.toml
 
   try {
     const { imageBase64 } = await req.json();
